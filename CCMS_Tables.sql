@@ -994,5 +994,61 @@ Insert into SHRIYA_PROJECT.CASE_RESOLUTION (CASE_ID,RESOLUTION_TYPE,RESOLUTION_D
 Insert into SHRIYA_PROJECT.CASE_RESOLUTION (CASE_ID,RESOLUTION_TYPE,RESOLUTION_DATE,COMMENTS) values ('CASE53','ONSITE SOLUTION',to_timestamp('03-AUG-20 12.00.00.000000000 AM','DD-MON-RR HH.MI.SSXFF AM'),'THE AGENT WENT AND REPLACED THE DISPLAY');
 
 
+-- creating views
+
+drop view V_CUSOTMER_PROFILE;
+
+CREATE VIEW V_CUSOTMER_PROFILE AS
+SELECT
+    c.customer_ID,
+    c.first_name || ' ' || last_name full_name,
+    c.email,
+    c.phone_number,
+    c.customer_onboarddate,
+    a.address_type,
+    a.address_1,
+    a.address_2,
+    a.city,
+    a.state_code,
+    a.country,
+    a.zip
+FROM
+    customer c
+    left join customer_address a on c.customer_id = a.customer_id ;
 
 
+drop view V_CASE_DETAILS;
+
+CREATE VIEW V_CASE_DETAILS AS
+SELECT
+    c.case_id,
+    c.open_date,
+    c.close_date,
+    c.part_id,
+    c.imei,
+    c.case_subject,
+    c.customer_id,
+    c.state_code,
+    c.issue_type,
+    a.employee_firstname || ' ' || a.employee_lastname full_name,
+    a.employee_email
+FROM
+    case_details c
+    left join employee a on c.employee_id = a.employee_id ;
+    
+drop view transaction_history_vw;
+CREATE VIEW transaction_history_vw AS
+SELECT
+    a.sub_id,
+    a.sub_tier,
+    a.sub_period,
+    p.payment_id,
+    c.customer_id,
+    d.dept_service_cost,
+    a.discount
+
+FROM
+    customer c
+    left join subscription a on c.sub_id = a.sub_id 
+    left join department d on c.customer_id = d.manager_id
+    left join payment p on p.customer_id = c.customer_id;
