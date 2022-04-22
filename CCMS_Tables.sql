@@ -80,6 +80,12 @@ PRIMARY KEY(State_code)
 );
 
 
+--altering geo_details : changing data type of tax to decimal -- 
+ALTER TABLE shriya_project.geo_details
+DROP COLUMN tax;
+
+ALTER TABLE shriya_project.geo_details
+ADD tax decimal(5,2);
 
 
 --insert for geodetails
