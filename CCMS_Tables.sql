@@ -484,6 +484,9 @@ PRIMARY KEY(Payment_id),
 FOREIGN KEY (case_id) References case_details(case_id) ON DELETE CASCADE
 );
 
+--altered discount in payment table--
+ALTER TABLE shriya_project.payment DROP COLUMN discount;
+ALTER TABLE shriya_project.payment ADD discount decimal(5,2);
 
 --insert payment
 
