@@ -993,6 +993,9 @@ Insert into SHRIYA_PROJECT.CASE_RESOLUTION (CASE_ID,RESOLUTION_TYPE,RESOLUTION_D
 Insert into SHRIYA_PROJECT.CASE_RESOLUTION (CASE_ID,RESOLUTION_TYPE,RESOLUTION_DATE,COMMENTS) values ('CASE51','ONSITE SOLUTION',to_timestamp('23-JUL-20 12.00.00.000000000 AM','DD-MON-RR HH.MI.SSXFF AM'),'THE AGENT WENT AND REPLACED THE DISPLAY');
 Insert into SHRIYA_PROJECT.CASE_RESOLUTION (CASE_ID,RESOLUTION_TYPE,RESOLUTION_DATE,COMMENTS) values ('CASE52','PARTS SHIPPED',to_timestamp('22-JUL-20 12.00.00.000000000 AM','DD-MON-RR HH.MI.SSXFF AM'),'PARTS WERE SHIPPED TO THE CUSTOMER');
 Insert into SHRIYA_PROJECT.CASE_RESOLUTION (CASE_ID,RESOLUTION_TYPE,RESOLUTION_DATE,COMMENTS) values ('CASE53','ONSITE SOLUTION',to_timestamp('03-AUG-20 12.00.00.000000000 AM','DD-MON-RR HH.MI.SSXFF AM'),'THE AGENT WENT AND REPLACED THE DISPLAY');
+Insert into SHRIYA_PROJECT.CASE_RESOLUTION (CASE_ID,RESOLUTION_TYPE,RESOLUTION_DATE,COMMENTS) values ('CASE54','ONSITE SOLUTION',to_timestamp('07-AUG-20 12.00.00.000000000 AM','DD-MON-RR HH.MI.SSXFF AM'),'THE AGENT WENT AND REPLACED THE DISPLAY');
+Insert into SHRIYA_PROJECT.CASE_RESOLUTION (CASE_ID,RESOLUTION_TYPE,RESOLUTION_DATE,COMMENTS) values ('CASE55','ONSITE SOLUTION',to_timestamp('22-AUG-20 12.00.00.000000000 AM','DD-MON-RR HH.MI.SSXFF AM'),'THE AGENT WENT AND REPLACED THE DISPLAY');
+Insert into SHRIYA_PROJECT.CASE_RESOLUTION (CASE_ID,RESOLUTION_TYPE,RESOLUTION_DATE,COMMENTS) values ('CASE56','ONSITE SOLUTION',to_timestamp('18-MAY-20 12.00.00.000000000 AM','DD-MON-RR HH.MI.SSXFF AM'),'THE AGENT WENT AND REPLACED THE DISPLAY');
 
 
 drop view V_CUSOTMER_PROFILE;
@@ -1389,7 +1392,7 @@ FUNCTION PROCESS_CUSTOMER(
         
 
         UPDATE CUSTOMER_ADDRESS SET ADDRESS_1 = vADDRESS_1, ADDRESS_2 = vADDRESS_2,
-        State_code = vState_code,CITY=vCITY ,ZIP=vZIP ,ADDRESS_TYPE=vADDRESS_TYPE WHERE Customer_id = Customer_id;
+        State_code = vState_code,CITY=vCITY ,ZIP=vZIP ,ADDRESS_TYPE=vADDRESS_TYPE WHERE Customer_id = vCustomer_id;
         
         IF SQL%ROWCOUNT !=1 THEN
             dbms_output.put_line('Record has not been updated. Please try again !!!');
@@ -1460,50 +1463,60 @@ END PCKG_CUSTOMER;
 
 set serveroutput on;
 
---execute pckg_customer.INSERT_CUSTOMER_ADDRESS('CUST54','710 jamaica St','apt1','TX','Sugar Land',77478,'USA','WORK');
+execute pckg_customer.INSERT_CUSTOMER_ADDRESS('CUST55','710 roxbury St','apt5','TX','Sugar Land',77478,'USA','WORK');
 
---execute pckg_customer.INSERT_CUSTOMER('CUST67','Sharan','B','shriyadxt@gmail.com','(617) 490-4991','18-JAN-18 12.00.00.000000000 AM','SUB02');
+execute pckg_customer.INSERT_CUSTOMER('CUST67','Sharan','B','shriyadxt@gmail.com','(617) 490-4991','18-JAN-18 12.00.00.000000000 AM','SUB02');
 
-execute pckg_customer.UPDATE_CUSTOMER_ADDRESS('CUST54','710 jamaica plain St','apt1','TX','Sugar Land',77478,'USA','WORK');
+execute pckg_customer.UPDATE_CUSTOMER_ADDRESS('CUST46','710 roxbury St','apt1','TX','Sugar Land',77478,'USA','HOME');
 
 select distinct cd.employee_id, count(cd.case_id) from SHRIYA_PROJECT.case_details cd group by cd.employee_id having count(cd.case_id)>2;
 
 
 
 
-select c.employee_id,c.case_id,r.resolution_date - c.open_date nbr_of_days,p.product_category,w.status from case_details c 
+select distinct c.employee_id,c.case_id,r.resolution_date - c.open_date nbr_of_days,p.product_category,w.status from case_details c 
 left join case_resolution r on c.case_id = r.case_id 
 left join imei_info i on c.imei = i.imei
 left join product p on p.product_number = i.product_number
 left join employee_work w on c.case_id = w.case_id
-where c.employee_id in (select distinct cd.employee_id from SHRIYA_PROJECT.case_details cd group by cd.employee_id);
+where c.employee_id in (select distinct cd.employee_id from SHRIYA_PROJECT.case_details cd group by cd.employee_id)
+order by employee_id;
+
+select * from case_details cd left join case_resolution cr on cd.case_id = cr.case_id;
 
 
+WITH A AS (select *
+from
+(
+  select *
+  from employee_work
+) x
+pivot
+(
+  count(CASE_ID)
+  for STATUS in ('RESOLVED' AS RES,'PENDING' AS PEN)
+) p) 
+SELECT EMPLOYEE_ID,SUM(RES) NBR_RESOLVED,SUM(PEN) NBR_PENDING,(SUM(RES)/(SUM(PEN)+SUM(RES))) * 100 AS PERCENT_RES  
+FROM A GROUP BY EMPLOYEE_ID
+order by employee_id;
 
--- Creating indexes
-
-CREATE UNIQUE INDEX PARTS_PK ON PARTS (PART_ID)
-;
-CREATE INDEX CASE_DETAILS_INDEX ON CASE_DETAILS (CASE_ID, OPEN_DATE, CLOSE_DATE)
-;
-CREATE INDEX CASE_RESOLUTION_INDEX ON CASE_RESOLUTION (CASE_ID, RESOLUTION_TYPE)
-;
-
-
---DML Trigger for table  Case_Details
-CREATE OR REPLACE EDITIONABLE TRIGGER CASE_DETAILS_TRIGG
-AFTER INSERT OR UPDATE OR DELETE
-ON CASE_DETAILS
-FOR EACH ROW
-BEGIN
-CASE
-WHEN INSERTING THEN
-INSERT INTO audit_data values (AUDIT_ID_SEQ.nextval, user, systimestamp, 'INSERT');
-WHEN UPDATING THEN
-INSERT INTO audit _data values (AUDIT_ID_SEQ.nextval, user, systimestamp, 'UPDATE');
-WHEN DELETING THEN
-INSERT INTO audit_data values (AUDIT_ID_SEQ.nextval, user, systimestamp, 'DELETE');
-END CASE;
-END;
-/
-ALTER TRIGGER CASE_DETAILS_TRIGG ENABLE;
+UPDATE EMPLOYEE_WORK W SET W.STATUS = 'PENDING'
+WHERE W.CASE_ID IN (SELECT CD.CASE_ID
+            FROM CASE_DETAILS CD 
+            WHERE CD.CLOSE_DATE IS NULL);
+            
+            
+CREATE OR REPLACE EDITIONABLE PACKAGE PCKG_CASES   AS 
+ FUNCTION PROCESS_CASE(
+        vCASE_ID IN CAR.CASE_ID%type,
+        vOPEN_DATE IN CAR.OPEN_DATE%type,
+        vCLOSE_DATE IN CAR.CLOSE_DATE %type,
+        vPART_ID IN CAR.PART_ID%type,
+        vIMEI IN CAR.IMEI%type,
+        vCASE_SUBJECT IN CAR.CASE_SUBJECT%type,
+        vCUSTOMER_ID IN CAR.CUSTOMER_ID%type,
+        vSTATE_CODE IN CAR.STATE_CODE%type,
+        vISSUE_TYPE IN CAR.ISSUE_TYPE%type 
+        vEMPLOYEE_IDIN CAR.EMPLOYEE_ID%type 
+    ) RETURN VARCHAR2;
+    
