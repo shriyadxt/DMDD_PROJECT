@@ -28,7 +28,7 @@ order by count(cd.case_id) desc ;
 
 
 /*
-3. Promoters for the organization
+3. Promoter Customers for the organization
 */
 
 
@@ -37,3 +37,11 @@ SHRIYA_PROJECT.case_details cd
 left join SHRIYA_PROJECT.customer_feedback f
 on cd.case_id = f.case_id 
 where f.likely_to_retain = 'YES' and f.likely_to_recommend >= 8;
+
+/* 
+4. Detractor Customers for the Organization
+*/
+select cd.customer_id as Detractors,  f.feedback_id from SHRIYA_PROJECT.case_details cd 
+left join SHRIYA_PROJECT.customer_feedback f
+on cd.case_id = f.case_id
+where f.likely_to_retain = 'NO' and f.likely_to_recommend <=5;
