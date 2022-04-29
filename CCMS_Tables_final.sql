@@ -1505,18 +1505,389 @@ WHERE W.CASE_ID IN (SELECT CD.CASE_ID
             FROM CASE_DETAILS CD 
             WHERE CD.CLOSE_DATE IS NULL);
             
-            
-CREATE OR REPLACE EDITIONABLE PACKAGE PCKG_CASES   AS 
- FUNCTION PROCESS_CASE(
-        vCASE_ID IN CAR.CASE_ID%type,
-        vOPEN_DATE IN CAR.OPEN_DATE%type,
-        vCLOSE_DATE IN CAR.CLOSE_DATE %type,
-        vPART_ID IN CAR.PART_ID%type,
-        vIMEI IN CAR.IMEI%type,
-        vCASE_SUBJECT IN CAR.CASE_SUBJECT%type,
-        vCUSTOMER_ID IN CAR.CUSTOMER_ID%type,
-        vSTATE_CODE IN CAR.STATE_CODE%type,
-        vISSUE_TYPE IN CAR.ISSUE_TYPE%type 
-        vEMPLOYEE_IDIN CAR.EMPLOYEE_ID%type 
-    ) RETURN VARCHAR2;
+CREATE OR REPLACE EDITIONABLE PACKAGE P_CASE_DETAILS AS
+
+
+
+FUNCTION PROCESS_CASE_DETAILS(
+vCASE_ID IN CASE_DETAILS.CASE_ID%type,
+vOPEN_DATE IN CASE_DETAILS.OPEN_DATE%type,
+vCLOSE_DATE IN CASE_DETAILS.CLOSE_DATE%type,
+vPART_ID IN CASE_DETAILS.PART_ID%type,
+vIMEI IN CASE_DETAILS.IMEI%type,
+vCASE_SUBJECT IN CASE_DETAILS.CASE_SUBJECT%type,
+vCUSTOMER_ID IN CASE_DETAILS.CUSTOMER_ID%type,
+vSTATE_CODE IN CASE_DETAILS.STATE_CODE%type,
+vISSUE_TYPE IN CASE_DETAILS.ISSUE_TYPE%type,
+vEMPLOYEE_ID IN CASE_DETAILS.EMPLOYEE_ID%type
+) RETURN VARCHAR2;
+
+
+
+PROCEDURE INSERT_CASE_DETAILS(
+vCASE_ID IN CASE_DETAILS.CASE_ID%type,
+vOPEN_DATE IN CASE_DETAILS.OPEN_DATE%type,
+vCLOSE_DATE IN CASE_DETAILS.CLOSE_DATE%type,
+vPART_ID IN CASE_DETAILS.PART_ID%type,
+vIMEI IN CASE_DETAILS.IMEI%type,
+vCASE_SUBJECT IN CASE_DETAILS.CASE_SUBJECT%type,
+vCUSTOMER_ID IN CASE_DETAILS.CUSTOMER_ID%type,
+vSTATE_CODE IN CASE_DETAILS.STATE_CODE%type,
+vISSUE_TYPE IN CASE_DETAILS.ISSUE_TYPE%type,
+vEMPLOYEE_ID IN CASE_DETAILS.EMPLOYEE_ID%type
+);
+
+PROCEDURE UPDATE_CASE_DETAILS(
+vCASE_ID IN CASE_DETAILS.CASE_ID%type,
+vOPEN_DATE IN CASE_DETAILS.OPEN_DATE%type,
+vCLOSE_DATE IN CASE_DETAILS.CLOSE_DATE%type,
+vPART_ID IN CASE_DETAILS.PART_ID%type,
+vIMEI IN CASE_DETAILS.IMEI%type,
+vCASE_SUBJECT IN CASE_DETAILS.CASE_SUBJECT%type,
+vCUSTOMER_ID IN CASE_DETAILS.CUSTOMER_ID%type,
+vSTATE_CODE IN CASE_DETAILS.STATE_CODE%type,
+vISSUE_TYPE IN CASE_DETAILS.ISSUE_TYPE%type,
+vEMPLOYEE_ID IN CASE_DETAILS.EMPLOYEE_ID%type
+);
+
+
+PROCEDURE DELETE_CASE_DETAILS (
+vCASE_ID IN CASE_DETAILS.CASE_ID%type
+);
+
+END P_CASE_DETAILS;
     
+CREATE OR REPLACE EDITIONABLE PACKAGE BODY P_CASE_DETAILS AS
+FUNCTION PROCESS_CASE_DETAILS(
+vCASE_ID IN CASE_DETAILS.CASE_ID%type,
+vOPEN_DATE IN CASE_DETAILS.OPEN_DATE%type,
+vCLOSE_DATE IN CASE_DETAILS.CLOSE_DATE%type,
+vPART_ID IN CASE_DETAILS.PART_ID%type,
+vIMEI IN CASE_DETAILS.IMEI%type,
+vCASE_SUBJECT IN CASE_DETAILS.CASE_SUBJECT%type,
+vCUSTOMER_ID IN CASE_DETAILS.CUSTOMER_ID%type,
+vSTATE_CODE IN CASE_DETAILS.STATE_CODE%type,
+vISSUE_TYPE IN CASE_DETAILS.ISSUE_TYPE%type,
+vEMPLOYEE_ID IN CASE_DETAILS.EMPLOYEE_ID%type
+) RETURN VARCHAR2 AS
+
+
+
+-- TODO: Implementation required for FUNCTION P_CASE_DETAILS.Process_CASE_DETAILS
+ex_INVALID_CASE_TYPE EXCEPTION;
+ex_CASE_DOESNT_EXIST EXCEPTION;
+ex_INVALID_IMEI EXCEPTION;
+ex_CASE_SUBJECT EXCEPTION;
+ex_CUSTOMER EXCEPTION;
+ex_DUPLICATE_IMEI EXCEPTION;
+ex_NO_CASE_FOUND EXCEPTION;
+
+db_IMEI CASE_DETAILS.IMEI%type;
+DB_CASE_ID CASE_DETAILS.CASE_ID%type;
+
+BEGIN
+
+if vCASE_ID is NULL or LENGTH(trim(vCASE_ID)) IS NULL then
+raise ex_INVALID_CASE_TYPE;
+end if;
+
+
+if vIMEI is NULL or LENGTH(trim(vIMEI)) is NULL then
+raise ex_INVALID_IMEI;
+end if;
+
+if vCUSTOMER_ID is NULL then
+raise ex_CUSTOMER;
+end if;
+
+if pckg_utils.check_case_id_exists(vCASE_ID) is null then
+raise ex_NO_CASE_FOUND;
+end if;
+
+begin
+select IMEI into db_IMEI from CASE_DETAILS where imei = vimei;
+if db_IMEI is NOT NULL then
+raise ex_DUPLICATE_IMEI;
+end if;
+exception
+when ex_DUPLICATE_IMEI then
+raise ex_DUPLICATE_IMEI;
+when NO_DATA_FOUND then
+return 'YES';
+end;
+
+RETURN 'YES';
+EXCEPTION
+when ex_INVALID_CASE_TYPE then
+dbms_output.put_line('Invalid Case Type !!! Case Type Cannot be NULL or Empty');
+RETURN 'NO';
+when ex_CASE_DOESNT_EXIST then
+dbms_output.put_line('Case doesnt exist');
+RETURN 'NO';
+when ex_DUPLICATE_IMEI then
+dbms_output.put_line('Duplicate IMEI Found !!!!');
+RETURN 'NO';
+when ex_NO_CASE_FOUND then
+dbms_output.put_line('no case Found !!!!');
+RETURN 'NO';
+when ex_INVALID_IMEI then
+dbms_output.put_line('invalid imei !!!!');
+RETURN 'NO';
+when others then
+RETURN 'NO';
+END PROCESS_CASE_DETAILS;
+
+FUNCTION PROCESS_UPDATE_CASE(
+vCASE_ID IN CASE_DETAILS.CASE_ID%type,
+vOPEN_DATE IN CASE_DETAILS.OPEN_DATE%type,
+vCLOSE_DATE IN CASE_DETAILS.CLOSE_DATE%type,
+vPART_ID IN CASE_DETAILS.PART_ID%type,
+vIMEI IN CASE_DETAILS.IMEI%type,
+vCASE_SUBJECT IN CASE_DETAILS.CASE_SUBJECT%type,
+vCUSTOMER_ID IN CASE_DETAILS.CUSTOMER_ID%type,
+vSTATE_CODE IN CASE_DETAILS.STATE_CODE%type,
+vISSUE_TYPE IN CASE_DETAILS.ISSUE_TYPE%type,
+vEMPLOYEE_ID IN CASE_DETAILS.EMPLOYEE_ID%type
+) RETURN VARCHAR2 AS
+
+
+
+-- TODO: Implementation required for FUNCTION PCKG_CASE_DETAILS.PROCESS_CASE_DETAILS
+ex_INVALID_CASE_TYPE EXCEPTION;
+ex_PART_ID EXCEPTION;
+ex_IMEI EXCEPTION;
+ex_STATE_CODE EXCEPTION;
+ex_OPEN_DATE EXCEPTION;
+ex_DUPLICATE_IMEI exception;
+ex_NO_CASE_FOUND EXCEPTION;
+
+db_IMEI case_details.imei%type;
+DB_CASE_ID case_details.case_id%type;
+BEGIN
+
+if vCASE_ID is NULL or LENGTH(trim(vCASE_ID)) IS NULL then
+raise ex_INVALID_CASE_TYPE;
+end if;
+
+if vPART_ID IS NULL then
+raise ex_PART_ID;
+end if;
+
+if vOPEN_DATE is NULL then
+raise ex_OPEN_DATE;
+end if;
+
+if vIMEI is NULL or LENGTH(trim(vIMEI)) is NULL then
+raise ex_IMEI;
+end if;
+
+if LENGTH(trim(vSTATE_CODE)) !=2 then
+raise ex_STATE_CODE;
+end if;
+
+if pckg_utils.check_case_id_exists(vCASE_ID) is null then
+raise ex_NO_CASE_FOUND;
+end if;
+
+begin
+select imei,case_id into db_imei,DB_CASE_ID from case_details where imei = vimei;
+if db_imei is NOT NULL and DB_CASE_ID != vcase_id then
+raise ex_DUPLICATE_IMEI;
+end if;
+exception
+when ex_DUPLICATE_IMEI then
+raise ex_DUPLICATE_IMEI;
+when NO_DATA_FOUND then
+return 'YES';
+end;
+
+RETURN 'YES';
+
+EXCEPTION
+when ex_INVALID_CASE_TYPE then
+dbms_output.put_line('Invalid Case ID !!! Case id Cannot be NULL or Empty');
+RETURN 'NO';
+when ex_PART_ID then
+dbms_output.put_line('Invalid part ID !!!');
+RETURN 'NO';
+when ex_IMEI then
+dbms_output.put_line('Invalid IMEI !!! ');
+RETURN 'NO';
+when ex_STATE_CODE then
+dbms_output.put_line('Invalid State code !!! state code should be 2 char');
+RETURN 'NO';
+when ex_OPEN_DATE then
+dbms_output.put_line('Invalid Case Number !!! Case Number Cannot be NULL or Empty');
+RETURN 'NO';
+when ex_DUPLICATE_IMEI then
+dbms_output.put_line('Duplicate imei Number Found !!!!');
+RETURN 'NO';
+when ex_NO_CASE_FOUND then
+dbms_output.put_line('Case ID not Found !!!!');
+RETURN 'NO';
+when others then
+RETURN 'NO';
+END PROCESS_UPDATE_CASE;
+
+PROCEDURE INSERT_CASE_DETAILS(
+vCASE_ID IN CASE_DETAILS.CASE_ID%type,
+vOPEN_DATE IN CASE_DETAILS.OPEN_DATE%type,
+vCLOSE_DATE IN CASE_DETAILS.CLOSE_DATE%type,
+vPART_ID IN CASE_DETAILS.PART_ID%type,
+vIMEI IN CASE_DETAILS.IMEI%type,
+vCASE_SUBJECT IN CASE_DETAILS.CASE_SUBJECT%type,
+vCUSTOMER_ID IN CASE_DETAILS.CUSTOMER_ID%type,
+vSTATE_CODE IN CASE_DETAILS.STATE_CODE%type,
+vISSUE_TYPE IN CASE_DETAILS.ISSUE_TYPE%type,
+vEMPLOYEE_ID IN CASE_DETAILS.EMPLOYEE_ID%type
+) AS
+
+
+-- TODO: Implementation required for PROCEDURE P_CASE_DETAILS.INSERT_CASE_DETAILS
+ex_INVALID EXCEPTION;
+ex_DUPLICATE_IMEI EXCEPTION;
+ex_NO_CASE_FOUND EXCEPTION;
+ex_process EXCEPTION;
+BEGIN
+if Process_CASE_DETAILS(vCASE_ID, vOPEN_DATE, vCLOSE_DATE,vPART_ID, vIMEI, vCASE_SUBJECT, vCUSTOMER_ID,vSTATE_CODE,vISSUE_TYPE,vEMPLOYEE_ID) = 'NO' then
+raise ex_process;
+end if;
+
+if pckg_utils.check_case_id_exists(vCASE_ID) != 0 then
+raise ex_DUPLICATE_IMEI;
+end if;
+
+insert into CASE_DETAILS(CASE_ID,
+OPEN_DATE,
+CLOSE_DATE,
+PART_ID,
+CASE_SUBJECT,
+IMEI,
+CUSTOMER_ID,
+STATE_CODE,
+ISSUE_TYPE,
+EMPLOYEE_ID) values(
+vCASE_ID,
+vOPEN_DATE,
+vCLOSE_DATE,
+trim(vPART_ID),
+trim(vCASE_SUBJECT),
+trim(vIMEI),
+vCUSTOMER_ID,
+vSTATE_CODE,
+vISSUE_TYPE,
+vEMPLOYEE_ID
+);
+
+UPDATE parts p SET Availability = Availability - 1 where p.part_id = vpart_id;
+
+if SQL%ROWCOUNT != 1 then
+raise ex_INVALID;
+else
+dbms_output.put_line('Case Added Successfully');
+end if;
+
+commit;
+EXCEPTION
+when ex_INVALID then
+dbms_output.put_line('Case Could Not Be Inserted !!!');
+when ex_process then
+dbms_output.put_line('Case Could Not Be processed !!!');
+when ex_DUPLICATE_IMEI then
+dbms_output.put_line('Duplicate case_id !!!');
+when ex_NO_CASE_FOUND then
+dbms_output.put_line('no case Found !!!!');
+when others then
+dbms_output.put_line('Invalid Operation :' || SQLERRM);
+
+
+
+END INSERT_CASE_DETAILS;
+
+
+
+PROCEDURE UPDATE_CASE_DETAILS(
+vCASE_ID IN CASE_DETAILS.CASE_ID%type,
+vOPEN_DATE IN CASE_DETAILS.OPEN_DATE%type,
+vCLOSE_DATE IN CASE_DETAILS.CLOSE_DATE%type,
+vPART_ID IN CASE_DETAILS.PART_ID%type,
+vIMEI IN CASE_DETAILS.IMEI%type,
+vCASE_SUBJECT IN CASE_DETAILS.CASE_SUBJECT%type,
+vCUSTOMER_ID IN CASE_DETAILS.CUSTOMER_ID%type,
+vSTATE_CODE IN CASE_DETAILS.STATE_CODE%type,
+vISSUE_TYPE IN CASE_DETAILS.ISSUE_TYPE%type,
+vEMPLOYEE_ID IN CASE_DETAILS.EMPLOYEE_ID%type
+) AS
+
+
+
+-- TODO: Implementation required for PROCEDURE P_CASE_DETAILS.UPDATE_CASE_DETAILS
+ex_INVALID EXCEPTION;
+BEGIN
+
+if PROCESS_UPDATE_CASE(vCASE_ID, vOPEN_DATE, vCLOSE_DATE,vPART_ID, vIMEI, vCASE_SUBJECT, vCUSTOMER_ID,vSTATE_CODE,vISSUE_TYPE,vEMPLOYEE_ID) = 'NO' then
+raise ex_INVALID;
+end if;
+
+UPDATE CASE_DETAILS SET CASE_ID = vCASE_ID, OPEN_DATE = vOPEN_DATE, CLOSE_DATE = vCLOSE_DATE, PART_ID = vPART_ID , IMEI = vIMEI , CASE_SUBJECT = vCASE_SUBJECT, CUSTOMER_ID = vCUSTOMER_ID,state_code = vSTATE_CODE,issue_type = vISSUE_TYPE,employee_id = vEMPLOYEE_ID WHERE CASE_ID = vCASE_ID;
+
+IF SQL%ROWCOUNT !=1 THEN
+dbms_output.put_line('Record not been updated. Please try again !!!');
+rollback;
+ELSE
+dbms_output.put_line('Record has updated successfully !!!');
+commit;
+END IF;
+
+EXCEPTION
+
+WHEN ex_INVALID THEN
+dbms_output.put_line('Case Update has been failed. Please try again with valid constraints !!!');
+
+
+
+END UPDATE_CASE_DETAILS;
+
+
+
+PROCEDURE DELETE_CASE_DETAILS (
+vCASE_ID IN CASE_DETAILS.CASE_ID%type)
+AS
+ex_null_case_id exception;
+ex_NO_CASE_FOUND EXCEPTION;
+ex_INVALID EXCEPTION;
+
+BEGIN
+
+if pckg_utils.check_case_id_exists(vCASE_ID) is null then
+raise ex_NO_CASE_FOUND;
+end if;
+if vCASE_ID is null then
+raise ex_null_case_id;
+else
+delete from case_details where case_id = vCASE_ID;
+if SQL%ROWCOUNT !=1 then
+rollback;
+raise ex_INVALID;
+else
+dbms_output.put_line('CASE_ID: '|| vCASE_ID || ' deleted sucessfully!');
+commit;
+end if;
+end if;
+
+
+EXCEPTION
+when ex_null_case_id then
+dbms_output.put_line('Case_Id cannot be null');
+when ex_NO_CASE_FOUND then
+dbms_output.put_line('Case_details Id Do Not Exists');
+when ex_INVALID then
+dbms_output.put_line('invalid!');
+when others then
+dbms_output.put_line('Error Message: ' || SQLERRM);
+
+
+END DELETE_CASE_DETAILS;
+
+
+END P_CASE_DETAILS;
