@@ -16,7 +16,7 @@ SELECT EMPLOYEE_ID,SUM(RES),SUM(PEN),ROUND((SUM(RES)/(SUM(PEN)+SUM(RES))) * 100)
 
 
 /*
-2. Percent Number of cases (>5) for a given state
+2. Percent Number of cases (>5) for a given state.
 */
 
 select cd.state_code, count(cd.case_id) as case_count, round((count(*) * 100.0 / (select count(*) from shriya_project.case_details)),2) as Percent_state_case  
