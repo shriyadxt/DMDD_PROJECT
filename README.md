@@ -9,8 +9,13 @@ Employees should be able to register all customer information into the case. De
 
 # Team
 Sharan Balasubramanian - 002920078
+
 Shriya Dikshith - 002921535
+
 Sai Supriya Komarraju - 002960655
+
 Kavyashree Upendra - 002921251
+
 Vrushank Hiremath - 002926888
+
 Sindhu Srinivas Prasad - 002920301
