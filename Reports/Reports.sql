@@ -66,6 +66,14 @@ group by c.sub_id, s.sub_tier
 order by count(*) desc;
 
 
+/* 7.Problematic parts
+*/
+
+select cd.part_id, p.part_name, count(*) as part_problem from shriya_project.case_details cd
+inner join shriya_project.parts p on cd.part_id=p.part_id
+having count(*) > 2
+group by cd.part_id, p.part_name
+order by count(*) desc;
 
 
 
