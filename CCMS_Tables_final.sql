@@ -1636,3 +1636,95 @@ RETURN 'NO';
 when others then
 RETURN 'NO';
 END PROCESS_CASE_DETAILS;
+
+FUNCTION PROCESS_UPDATE_CASE(
+vCASE_ID IN CASE_DETAILS.CASE_ID%type,
+vOPEN_DATE IN CASE_DETAILS.OPEN_DATE%type,
+vCLOSE_DATE IN CASE_DETAILS.CLOSE_DATE%type,
+vPART_ID IN CASE_DETAILS.PART_ID%type,
+vIMEI IN CASE_DETAILS.IMEI%type,
+vCASE_SUBJECT IN CASE_DETAILS.CASE_SUBJECT%type,
+vCUSTOMER_ID IN CASE_DETAILS.CUSTOMER_ID%type,
+vSTATE_CODE IN CASE_DETAILS.STATE_CODE%type,
+vISSUE_TYPE IN CASE_DETAILS.ISSUE_TYPE%type,
+vEMPLOYEE_ID IN CASE_DETAILS.EMPLOYEE_ID%type
+) RETURN VARCHAR2 AS
+
+
+
+-- TODO: Implementation required for FUNCTION PCKG_CAR.PROCESS_CAR
+ex_INVALID_CASE_TYPE EXCEPTION;
+ex_PART_ID EXCEPTION;
+ex_IMEI EXCEPTION;
+ex_STATE_CODE EXCEPTION;
+ex_OPEN_DATE EXCEPTION;
+ex_DUPLICATE_IMEI exception;
+ex_NO_CASE_FOUND EXCEPTION;
+
+db_IMEI case_details.imei%type;
+DB_CASE_ID case_details.case_id%type;
+BEGIN
+
+if vCASE_ID is NULL or LENGTH(trim(vCASE_ID)) IS NULL then
+raise ex_INVALID_CASE_TYPE;
+end if;
+
+if vPART_ID IS NULL then
+raise ex_PART_ID;
+end if;
+
+if vOPEN_DATE is NULL then
+raise ex_OPEN_DATE;
+end if;
+
+if vIMEI is NULL or LENGTH(trim(vIMEI)) is NULL then
+raise ex_IMEI;
+end if;
+
+if LENGTH(trim(vSTATE_CODE)) !=2 then
+raise ex_STATE_CODE;
+end if;
+
+if pckg_utils.check_case_id_exists(vCASE_ID) is null then
+raise ex_NO_CASE_FOUND;
+end if;
+
+begin
+select imei,case_id into db_imei,DB_CASE_ID from case_details where imei = vimei;
+if db_imei is NOT NULL and DB_CASE_ID != vcase_id then
+raise ex_DUPLICATE_IMEI;
+end if;
+exception
+when ex_DUPLICATE_IMEI then
+raise ex_DUPLICATE_IMEI;
+when NO_DATA_FOUND then
+return 'YES';
+end;
+
+RETURN 'YES';
+
+EXCEPTION
+when ex_INVALID_CASE_TYPE then
+dbms_output.put_line('Invalid Case ID !!! Case id Cannot be NULL or Empty');
+RETURN 'NO';
+when ex_PART_ID then
+dbms_output.put_line('Invalid part ID !!!');
+RETURN 'NO';
+when ex_IMEI then
+dbms_output.put_line('Invalid IMEI !!! ');
+RETURN 'NO';
+when ex_STATE_CODE then
+dbms_output.put_line('Invalid State code !!! state code should be 2 char');
+RETURN 'NO';
+when ex_OPEN_DATE then
+dbms_output.put_line('Invalid Case Number !!! Car Number Cannot be NULL or Empty');
+RETURN 'NO';
+when ex_DUPLICATE_IMEI then
+dbms_output.put_line('Duplicate imei Number Found !!!!');
+RETURN 'NO';
+when ex_NO_CASE_FOUND then
+dbms_output.put_line('Case ID not Found !!!!');
+RETURN 'NO';
+when others then
+RETURN 'NO';
+END PROCESS_UPDATE_CASE;
