@@ -1652,7 +1652,7 @@ vEMPLOYEE_ID IN CASE_DETAILS.EMPLOYEE_ID%type
 
 
 
--- TODO: Implementation required for FUNCTION PCKG_CAR.PROCESS_CAR
+-- TODO: Implementation required for FUNCTION PCKG_CASE_DETAILS.PROCESS_CASE_DETAILS
 ex_INVALID_CASE_TYPE EXCEPTION;
 ex_PART_ID EXCEPTION;
 ex_IMEI EXCEPTION;
@@ -1717,7 +1717,7 @@ when ex_STATE_CODE then
 dbms_output.put_line('Invalid State code !!! state code should be 2 char');
 RETURN 'NO';
 when ex_OPEN_DATE then
-dbms_output.put_line('Invalid Case Number !!! Car Number Cannot be NULL or Empty');
+dbms_output.put_line('Invalid Case Number !!! Case Number Cannot be NULL or Empty');
 RETURN 'NO';
 when ex_DUPLICATE_IMEI then
 dbms_output.put_line('Duplicate imei Number Found !!!!');
