@@ -1728,3 +1728,166 @@ RETURN 'NO';
 when others then
 RETURN 'NO';
 END PROCESS_UPDATE_CASE;
+
+PROCEDURE INSERT_CASE_DETAILS(
+vCASE_ID IN CASE_DETAILS.CASE_ID%type,
+vOPEN_DATE IN CASE_DETAILS.OPEN_DATE%type,
+vCLOSE_DATE IN CASE_DETAILS.CLOSE_DATE%type,
+vPART_ID IN CASE_DETAILS.PART_ID%type,
+vIMEI IN CASE_DETAILS.IMEI%type,
+vCASE_SUBJECT IN CASE_DETAILS.CASE_SUBJECT%type,
+vCUSTOMER_ID IN CASE_DETAILS.CUSTOMER_ID%type,
+vSTATE_CODE IN CASE_DETAILS.STATE_CODE%type,
+vISSUE_TYPE IN CASE_DETAILS.ISSUE_TYPE%type,
+vEMPLOYEE_ID IN CASE_DETAILS.EMPLOYEE_ID%type
+) AS
+
+
+-- TODO: Implementation required for PROCEDURE P_CASE_DETAILS.INSERT_CASE_DETAILS
+ex_INVALID EXCEPTION;
+ex_DUPLICATE_IMEI EXCEPTION;
+ex_NO_CASE_FOUND EXCEPTION;
+ex_process EXCEPTION;
+BEGIN
+if Process_CASE_DETAILS(vCASE_ID, vOPEN_DATE, vCLOSE_DATE,vPART_ID, vIMEI, vCASE_SUBJECT, vCUSTOMER_ID,vSTATE_CODE,vISSUE_TYPE,vEMPLOYEE_ID) = 'NO' then
+raise ex_process;
+end if;
+
+if pckg_utils.check_case_id_exists(vCASE_ID) != 0 then
+raise ex_DUPLICATE_IMEI;
+end if;
+
+insert into CASE_DETAILS(CASE_ID,
+OPEN_DATE,
+CLOSE_DATE,
+PART_ID,
+CASE_SUBJECT,
+IMEI,
+CUSTOMER_ID,
+STATE_CODE,
+ISSUE_TYPE,
+EMPLOYEE_ID) values(
+vCASE_ID,
+vOPEN_DATE,
+vCLOSE_DATE,
+trim(vPART_ID),
+trim(vCASE_SUBJECT),
+trim(vIMEI),
+vCUSTOMER_ID,
+vSTATE_CODE,
+vISSUE_TYPE,
+vEMPLOYEE_ID
+);
+
+UPDATE parts p SET Availability = Availability - 1 where p.part_id = vpart_id;
+
+if SQL%ROWCOUNT != 1 then
+raise ex_INVALID;
+else
+dbms_output.put_line('Case Added Successfully');
+end if;
+
+commit;
+EXCEPTION
+when ex_INVALID then
+dbms_output.put_line('Case Could Not Be Inserted !!!');
+when ex_process then
+dbms_output.put_line('Case Could Not Be processed !!!');
+when ex_DUPLICATE_IMEI then
+dbms_output.put_line('Duplicate case_id !!!');
+when ex_NO_CASE_FOUND then
+dbms_output.put_line('no case Found !!!!');
+when others then
+dbms_output.put_line('Invalid Operation :' || SQLERRM);
+
+
+
+END INSERT_CASE_DETAILS;
+
+
+
+PROCEDURE UPDATE_CASE_DETAILS(
+vCASE_ID IN CASE_DETAILS.CASE_ID%type,
+vOPEN_DATE IN CASE_DETAILS.OPEN_DATE%type,
+vCLOSE_DATE IN CASE_DETAILS.CLOSE_DATE%type,
+vPART_ID IN CASE_DETAILS.PART_ID%type,
+vIMEI IN CASE_DETAILS.IMEI%type,
+vCASE_SUBJECT IN CASE_DETAILS.CASE_SUBJECT%type,
+vCUSTOMER_ID IN CASE_DETAILS.CUSTOMER_ID%type,
+vSTATE_CODE IN CASE_DETAILS.STATE_CODE%type,
+vISSUE_TYPE IN CASE_DETAILS.ISSUE_TYPE%type,
+vEMPLOYEE_ID IN CASE_DETAILS.EMPLOYEE_ID%type
+) AS
+
+
+
+-- TODO: Implementation required for PROCEDURE P_CASE_DETAILS.UPDATE_CASE_DETAILS
+ex_INVALID EXCEPTION;
+BEGIN
+
+if PROCESS_UPDATE_CASE(vCASE_ID, vOPEN_DATE, vCLOSE_DATE,vPART_ID, vIMEI, vCASE_SUBJECT, vCUSTOMER_ID,vSTATE_CODE,vISSUE_TYPE,vEMPLOYEE_ID) = 'NO' then
+raise ex_INVALID;
+end if;
+
+UPDATE CASE_DETAILS SET CASE_ID = vCASE_ID, OPEN_DATE = vOPEN_DATE, CLOSE_DATE = vCLOSE_DATE, PART_ID = vPART_ID , IMEI = vIMEI , CASE_SUBJECT = vCASE_SUBJECT, CUSTOMER_ID = vCUSTOMER_ID,state_code = vSTATE_CODE,issue_type = vISSUE_TYPE,employee_id = vEMPLOYEE_ID WHERE CASE_ID = vCASE_ID;
+
+IF SQL%ROWCOUNT !=1 THEN
+dbms_output.put_line('Record not been updated. Please try again !!!');
+rollback;
+ELSE
+dbms_output.put_line('Record has updated successfully !!!');
+commit;
+END IF;
+
+EXCEPTION
+
+WHEN ex_INVALID THEN
+dbms_output.put_line('Case Update has been failed. Please try again with valid constraints !!!');
+
+
+
+END UPDATE_CASE_DETAILS;
+
+
+
+PROCEDURE DELETE_CASE_DETAILS (
+vCASE_ID IN CASE_DETAILS.CASE_ID%type)
+AS
+ex_null_case_id exception;
+ex_NO_CASE_FOUND EXCEPTION;
+ex_INVALID EXCEPTION;
+
+BEGIN
+
+if pckg_utils.check_case_id_exists(vCASE_ID) is null then
+raise ex_NO_CASE_FOUND;
+end if;
+if vCASE_ID is null then
+raise ex_null_case_id;
+else
+delete from case_details where case_id = vCASE_ID;
+if SQL%ROWCOUNT !=1 then
+rollback;
+raise ex_INVALID;
+else
+dbms_output.put_line('CASE_ID: '|| vCASE_ID || ' deleted sucessfully!');
+commit;
+end if;
+end if;
+
+
+EXCEPTION
+when ex_null_case_id then
+dbms_output.put_line('Case_Id cannot be null');
+when ex_NO_CASE_FOUND then
+dbms_output.put_line('Case_details Id Do Not Exists');
+when ex_INVALID then
+dbms_output.put_line('invalid!');
+when others then
+dbms_output.put_line('Error Message: ' || SQLERRM);
+
+
+END DELETE_CASE_DETAILS;
+
+
+END P_CASE_DETAILS;
