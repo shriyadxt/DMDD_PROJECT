@@ -1557,3 +1557,82 @@ vCASE_ID IN CASE_DETAILS.CASE_ID%type
 
 END P_CASE_DETAILS;
     
+CREATE OR REPLACE EDITIONABLE PACKAGE BODY P_CASE_DETAILS AS
+FUNCTION PROCESS_CASE_DETAILS(
+vCASE_ID IN CASE_DETAILS.CASE_ID%type,
+vOPEN_DATE IN CASE_DETAILS.OPEN_DATE%type,
+vCLOSE_DATE IN CASE_DETAILS.CLOSE_DATE%type,
+vPART_ID IN CASE_DETAILS.PART_ID%type,
+vIMEI IN CASE_DETAILS.IMEI%type,
+vCASE_SUBJECT IN CASE_DETAILS.CASE_SUBJECT%type,
+vCUSTOMER_ID IN CASE_DETAILS.CUSTOMER_ID%type,
+vSTATE_CODE IN CASE_DETAILS.STATE_CODE%type,
+vISSUE_TYPE IN CASE_DETAILS.ISSUE_TYPE%type,
+vEMPLOYEE_ID IN CASE_DETAILS.EMPLOYEE_ID%type
+) RETURN VARCHAR2 AS
+
+
+
+-- TODO: Implementation required for FUNCTION P_CASE_DETAILS.Process_CASE_DETAILS
+ex_INVALID_CASE_TYPE EXCEPTION;
+ex_CASE_DOESNT_EXIST EXCEPTION;
+ex_INVALID_IMEI EXCEPTION;
+ex_CASE_SUBJECT EXCEPTION;
+ex_CUSTOMER EXCEPTION;
+ex_DUPLICATE_IMEI EXCEPTION;
+ex_NO_CASE_FOUND EXCEPTION;
+
+db_IMEI CASE_DETAILS.IMEI%type;
+DB_CASE_ID CASE_DETAILS.CASE_ID%type;
+
+BEGIN
+
+if vCASE_ID is NULL or LENGTH(trim(vCASE_ID)) IS NULL then
+raise ex_INVALID_CASE_TYPE;
+end if;
+
+
+if vIMEI is NULL or LENGTH(trim(vIMEI)) is NULL then
+raise ex_INVALID_IMEI;
+end if;
+
+if vCUSTOMER_ID is NULL then
+raise ex_CUSTOMER;
+end if;
+
+if pckg_utils.check_case_id_exists(vCASE_ID) is null then
+raise ex_NO_CASE_FOUND;
+end if;
+
+begin
+select IMEI into db_IMEI from CASE_DETAILS where imei = vimei;
+if db_IMEI is NOT NULL then
+raise ex_DUPLICATE_IMEI;
+end if;
+exception
+when ex_DUPLICATE_IMEI then
+raise ex_DUPLICATE_IMEI;
+when NO_DATA_FOUND then
+return 'YES';
+end;
+
+RETURN 'YES';
+EXCEPTION
+when ex_INVALID_CASE_TYPE then
+dbms_output.put_line('Invalid Case Type !!! Case Type Cannot be NULL or Empty');
+RETURN 'NO';
+when ex_CASE_DOESNT_EXIST then
+dbms_output.put_line('Case doesnt exist');
+RETURN 'NO';
+when ex_DUPLICATE_IMEI then
+dbms_output.put_line('Duplicate IMEI Found !!!!');
+RETURN 'NO';
+when ex_NO_CASE_FOUND then
+dbms_output.put_line('no case Found !!!!');
+RETURN 'NO';
+when ex_INVALID_IMEI then
+dbms_output.put_line('invalid imei !!!!');
+RETURN 'NO';
+when others then
+RETURN 'NO';
+END PROCESS_CASE_DETAILS;
