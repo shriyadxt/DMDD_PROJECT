@@ -25,3 +25,15 @@ left join SHRIYA_PROJECT.case_resolution cr on cd.case_id=cr.case_id
 group by cd.state_code
 having count(cd.case_id) > 4
 order by count(cd.case_id) desc ;
+
+
+/*
+3. Promoters for the organization
+*/
+
+
+select cd.customer_id as Promoters,  f.feedback_id from 
+SHRIYA_PROJECT.case_details cd 
+left join SHRIYA_PROJECT.customer_feedback f
+on cd.case_id = f.case_id 
+where f.likely_to_retain = 'YES' and f.likely_to_recommend >= 8;
