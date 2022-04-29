@@ -54,3 +54,19 @@ where f.likely_to_retain = 'NO' and f.likely_to_recommend <=5;
 
 select distinct cd.employee_id, count(cd.case_id)as count from SHRIYA_PROJECT.case_details cd group by cd.employee_id 
 having count(cd.case_id) > 2 order by count desc;
+
+
+/*
+6. Number of percentage of subscribers
+*/
+
+select c.sub_id, s.sub_tier, round((count(*) * 100.0 / (select count(*) from shriya_project.customer)),2) as Sub_Cust_Percentage from shriya_project.customer c
+inner join shriya_project.subscription s on c.sub_id=s.sub_id
+group by c.sub_id, s.sub_tier
+order by count(*) desc;
+
+
+
+
+
+
