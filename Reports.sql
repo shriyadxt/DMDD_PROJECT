@@ -45,3 +45,12 @@ select cd.customer_id as Detractors,  f.feedback_id from SHRIYA_PROJECT.case_det
 left join SHRIYA_PROJECT.customer_feedback f
 on cd.case_id = f.case_id
 where f.likely_to_retain = 'NO' and f.likely_to_recommend <=5;
+
+
+
+/*
+5. Number of employees who worked on more than 5 cases
+*/
+
+select distinct cd.employee_id, count(cd.case_id)as count from SHRIYA_PROJECT.case_details cd group by cd.employee_id 
+having count(cd.case_id) > 2 order by count desc;
