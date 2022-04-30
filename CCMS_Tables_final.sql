@@ -2,6 +2,8 @@
 -- table 1 --
 set serveroutput on;
 
+--DDL for ALL the tables (Dropping tables)
+
 drop table employee_work;
 drop table employee_address;
 drop table employee;
@@ -20,6 +22,7 @@ drop table subscription;
 drop table geo_details;
 
 
+--DDL for the tables (Creating Tables)
 create table department(
 Dept_id varchar2(10),
 Dept_name varchar2(100),
@@ -45,7 +48,6 @@ Insert into SHRIYA_PROJECT.DEPARTMENT (DEPT_ID,DEPT_NAME,DEPT_PRIORITY_DAYS,DEPT
 Insert into SHRIYA_PROJECT.DEPARTMENT (DEPT_ID,DEPT_NAME,DEPT_PRIORITY_DAYS,DEPT_EMAIL,DEPT_PHONE,MANAGER_ID,DEPT_SERVICE_COST) values ('D11','WAREHOUSE',null,'warehouse@ccms.com','(323) 210-3039','EMP05',null);
 
 
--- table 2---
 
 create table subscription (
     sub_id varchar2(20),
@@ -997,9 +999,11 @@ Insert into SHRIYA_PROJECT.CASE_RESOLUTION (CASE_ID,RESOLUTION_TYPE,RESOLUTION_D
 Insert into SHRIYA_PROJECT.CASE_RESOLUTION (CASE_ID,RESOLUTION_TYPE,RESOLUTION_DATE,COMMENTS) values ('CASE55','ONSITE SOLUTION',to_timestamp('22-AUG-20 12.00.00.000000000 AM','DD-MON-RR HH.MI.SSXFF AM'),'THE AGENT WENT AND REPLACED THE DISPLAY');
 Insert into SHRIYA_PROJECT.CASE_RESOLUTION (CASE_ID,RESOLUTION_TYPE,RESOLUTION_DATE,COMMENTS) values ('CASE56','ONSITE SOLUTION',to_timestamp('18-MAY-20 12.00.00.000000000 AM','DD-MON-RR HH.MI.SSXFF AM'),'THE AGENT WENT AND REPLACED THE DISPLAY');
 
-drop view V_CUSOTMER_PROFILE;
+-------------------
+--VIEWS
+-------------------
 
-CREATE VIEW V_CUSOTMER_PROFILE AS
+CREATE or replace VIEW V_CUSOTMER_PROFILE AS
 SELECT
     c.customer_ID,
     c.first_name || ' ' || last_name full_name,
@@ -1018,8 +1022,6 @@ FROM
     left join customer_address a on c.customer_id = a.customer_id ;
 
 
-drop view V_CASE_DETAILS;
-
 CREATE VIEW V_CASE_DETAILS AS
 SELECT
     c.case_id,
@@ -1037,8 +1039,7 @@ FROM
     case_details c
     left join employee a on c.employee_id = a.employee_id ;
     
-drop view transaction_history_vw;
-CREATE VIEW transaction_history_vw AS
+CREATE or replace VIEW transaction_history_vw AS
 SELECT
     a.sub_id,
     a.sub_tier,
@@ -1054,7 +1055,16 @@ FROM
     left join department d on c.customer_id = d.manager_id
     left join payment p on p.customer_id = c.customer_id;
     
-drop table payment; 
+    
+    
+CREATE or REPLACE view RECIEPT_VW as
+select cd.case_id,cd.customer_id,d.dept_service_cost+p.part_cost as service_cost,
+    d.dept_service_cost+p.part_cost - (d.dept_service_cost+p.part_cost *p.discount) as Total from department d 
+left join employee e on d.dept_id = e.dept_id
+left join case_details cd on cd.employee_id = e.employee_id
+left join payment p on p.case_id = cd.case_id
+inner join parts p on p.part_id = cd.part_id
+
 CREATE TABLE shriya_project.PAYMENT(
 Payment_id int,
 Customer_id varchar2(10),
@@ -1081,6 +1091,12 @@ select seq_payment_id.nextval, c.customer_id, s.discount, cd.case_id
 from subscription s, customer c, case_details cd
 where c.sub_id = s.sub_id and c.customer_id = cd.customer_id;
     
+    
+    
+-----------------------------------------------
+-- DDL for package PCKG_CUSTOMER
+-----------------------------------------------
+
 CREATE OR REPLACE EDITIONABLE PACKAGE PCKG_CUSTOMER AS 
 ex_INVALID EXCEPTION;
 FUNCTION PROCESS_CUSTOMER_ADDRESS(
@@ -1134,6 +1150,10 @@ FUNCTION PROCESS_CUSTOMER_ADDRESS(
         
 END PCKG_CUSTOMER;
 
+---------------------------
+-- DDL FOR PCKG_UTILS
+---------------------------
+
 CREATE OR REPLACE EDITIONABLE PACKAGE PCKG_UTILS   AS 
  FUNCTION CHECK_CUSTOMER_ID_EXISTS 
     (
@@ -1186,6 +1206,9 @@ CREATE OR REPLACE EDITIONABLE PACKAGE BODY PCKG_UTILS   AS
     
 end PCKG_UTILS;
 
+---------------------------------
+-- DDL FOR PACKAGE FOR PCKG_CASE_DETAILS
+---------------------------------
 
 CREATE OR REPLACE EDITIONABLE PACKAGE BODY PCKG_CUSTOMER   AS
 
@@ -1486,12 +1509,11 @@ END PCKG_CUSTOMER;
 
 set serveroutput on;
 
+execute pckg_customer.INSERT_CUSTOMER('CUST69','supriya','S','shriya10dxt@gmail.com','(617) 498-6991','23-JAN-18 12.00.00.000000000 AM','SUB02');
 
---execute pckg_customer.INSERT_CUSTOMER_ADDRESS('CUST68','830 roxbury St','apt1','AK','Tuscaloosa',75080,'USA','WORK');
+execute pckg_customer.INSERT_CUSTOMER_ADDRESS('CUST69','80 newbury St','apt511','AZ','Tuscaloosa',75080,'USA','HOME');
 
---execute pckg_customer.INSERT_CUSTOMER('CUST68','kavya','S','shriya7dxt@gmail.com','(617) 490-6991','19-JAN-18 12.00.00.000000000 AM','SUB03');
-
---execute pckg_customer.UPDATE_CUSTOMER_ADDRESS('CUST46','710 roxbury St','apt1','TX','Sugar Land',77478,'USA','HOME');
+execute pckg_customer.UPDATE_CUSTOMER_ADDRESS('CUST69','420 roxbury St','apt1','TX','Salem',77478,'USA','WORK');
 
             
             
@@ -1866,20 +1888,54 @@ END DELETE_CASE_DETAILS;
 
 END P_CASE_DETAILS;
 
+-------------------------
 --EXECUTING PROCEDURES
+-------------------------
 
 set serveroutput on;
---execute P_CASE_DETAILS.INSERT_CASE_DETAILS('CASE61','24-MAR-19 12.00.00.000000000 AM','28-MAR-19 12.00.00.000000000 AM','PART_5','J0E17PS','LAPTOP IS NOT CHARGING','CUST68','AK','BATTERY BLOAT','EMP18')
---execute P_CASE_DETAILS.UPDATE_CASE_DETAILS('CASE61','24-MAR-19 12.00.00.000000000 AM','28-MAR-19 12.00.00.000000000 AM','PART_5','J0E17PS','LAPTOP IS NOT CHARGING','CUST68','AK','BATTERY BLOAT','EMP20')
---execute P_CASE_DETAILS.DELETE_CASE_DETAILS('CASE61')
+execute P_CASE_DETAILS.INSERT_CASE_DETAILS('CASE62','24-MAR-19 12.00.00.000000000 AM','28-MAR-19 12.00.00.000000000 AM','PART_6','G0X35AV','LAPTOP IS NOT CHARGING','CUST69','TX','BATTERY BLOAT','EMP20')
+execute P_CASE_DETAILS.UPDATE_CASE_DETAILS('CASE62','25-MAR-19 12.00.00.000000000 AM','28-MAR-19 12.00.00.000000000 AM','PART_5','G0X35AV','LAPTOP IS NOT CHARGING','CUST69','TX','BATTERY BLOAT','EMP20')
+execute P_CASE_DETAILS.DELETE_CASE_DETAILS('CASE62')
 
+------------------
+-- SEQUENCE FOR AUDIT TABLE
+------------------
 
--- CREATION OF INDEXES FOR PARTS, CASE_DETAILS AND CASE_RESOLUTION :
+create sequence AUDIT_ID_SEQ 
+    start with 1 
+    increment by 1
+    order;
+    
+-------------------
+--DDL FOR AUDIT_DATA
+-------------------
 
+CREATE TABLE AUDIT_DATA   
+   (	  AUDIT_ID   NUMBER, 
+	  USERNAME   VARCHAR2(50)  , 
+	  AUDIT_DATE   TIMESTAMP (6) DEFAULT systimestamp, 
+	  ACTION   VARCHAR2(25)  
+   )       ;
+   
+   
+---------------------
+-- DDL FOR TRIGGER
+--------------------
+CREATE OR REPLACE EDITIONABLE TRIGGER CASE_DETAILS_TRIGG
+    AFTER INSERT OR UPDATE OR DELETE
+    ON CASE_DETAILS
+    FOR EACH ROW
+    BEGIN
+    CASE
+    WHEN INSERTING THEN
+    INSERT INTO audit_data values (AUDIT_ID_SEQ.nextval, user, systimestamp, 'INSERT');
+    WHEN UPDATING THEN
+    INSERT INTO audit_data values (AUDIT_ID_SEQ.nextval, user, systimestamp, 'UPDATE');
+    WHEN DELETING THEN
+    INSERT INTO audit_data values (AUDIT_ID_SEQ.nextval, user, systimestamp, 'DELETE');
+    END CASE;
+END;
 
-CREATE UNIQUE INDEX PARTS_PK ON PARTS (PART_ID)
-;
-CREATE INDEX CASE_DETAILS_INDEX ON CASE_DETAILS (CASE_ID, OPEN_DATE, CLOSE_DATE)
-;
-CREATE INDEX CASE_RESOLUTION_INDEX ON CASE_RESOLUTION (CASE_ID, RESOLUTION_TYPE)
-;
+ALTER TRIGGER CASE_DETAILS_TRIGG ENABLE;
+
+DELETE FROM CASE_RESOLUTION
