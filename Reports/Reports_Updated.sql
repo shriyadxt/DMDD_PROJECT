@@ -55,8 +55,8 @@ select * from sharan_project.cust_detractors;
 create view Part_Problem_Count AS
 select cd.part_id, p.part_name, count(*) as part_problem from shriya_project.case_details cd
 inner join shriya_project.parts p on cd.part_id=p.part_id
-having count(*) > 2
 group by cd.part_id, p.part_name
+having count(*) > 2
 order by count(*) desc;
 
 select * from sharan_project.part_problem_count;
