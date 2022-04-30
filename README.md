@@ -8,14 +8,14 @@ Customer service is an important aspect of any Business. Customer loyalty can be
 Employees should be able to register all customer information into the case. Details of all hardware replacements should be stored in a database to predict resolution time and cost. Customer data provided by customer service is used to compute the cost, which is based on warranty information. Customer retention is likely if replacements/fixes are completed within the predicted time of resolution. 
 
 # Team
+Kavyashree Upendra - 002921251
+
+Sai Supriya Komarraju - 002960655
+
 Sharan Balasubramanian - 002920078
 
 Shriya Dikshith - 002921535
 
-Sai Supriya Komarraju - 002960655
-
-Kavyashree Upendra - 002921251
+Sindhu Srinivas Prasad - 002920301
 
 Vrushank Hiremath - 002926888
-
-Sindhu Srinivas Prasad - 002920301
