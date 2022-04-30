@@ -1064,8 +1064,10 @@ left join case_details cd on cd.employee_id = e.employee_id
 left join payment p on p.case_id = cd.case_id
 inner join parts p on p.part_id = cd.part_id
 
+drop table payment;
+
 CREATE TABLE shriya_project.PAYMENT(
-Payment_id int,
+Payment_id number(10),
 Customer_id varchar2(10),
 discount number(10),
 case_id varchar2(10),
@@ -2051,17 +2053,18 @@ end PCKG_EMPLOYEE_WORK;
 CREATE OR REPLACE EDITIONABLE PACKAGE PCKG_PAYMENT AS
 
 FUNCTION PROCESS_PAYMENT(
-vCustomer_id IN PAYMENT.Customer_id%TYPE,
-vdiscount IN PAYMENT.discount%TYPE,
-vcase_id IN PAYMENT.case_id%TYPE
+    vPAYMENT_ID IN PAYMENT.payment_id%TYPE,
+    vCustomer_id IN PAYMENT.Customer_id%TYPE,
+    vcase_id IN PAYMENT.case_id%TYPE,
+        vdiscount IN PAYMENT.discount%TYPE
 ) RETURN VARCHAR2;
 
 
 PROCEDURE INSERT_PAYMENT(
-vPayment_id IN PAYMENT.Payment_id%TYPE,
-vCustomer_id IN PAYMENT.Customer_id%TYPE,
-vdiscount IN PAYMENT.discount%TYPE,
-vcase_id IN PAYMENT.case_id%TYPE
+    vPAYMENT_ID IN PAYMENT.payment_id%TYPE,
+    vCustomer_id IN PAYMENT.Customer_id%TYPE,
+    vcase_id IN PAYMENT.case_id%TYPE,
+        vdiscount IN PAYMENT.discount%TYPE
 );
 
 end PCKG_PAYMENT;
@@ -2071,38 +2074,74 @@ end PCKG_PAYMENT;
 CREATE OR REPLACE EDITIONABLE PACKAGE BODY PCKG_PAYMENT AS
 
 FUNCTION PROCESS_PAYMENT
-(
-vCustomer_id IN PAYMENT.Customer_id%TYPE,
-vdiscount IN PAYMENT.discount%TYPE,
-vcase_id IN PAYMENT.case_id%TYPE
-) RETURN VARCHAR2 AS
+    (
+    vPAYMENT_ID IN PAYMENT.payment_id%TYPE,
+    vCustomer_id IN PAYMENT.Customer_id%TYPE,
+    vcase_id IN PAYMENT.case_id%TYPE,
+    vdiscount IN PAYMENT.discount%TYPE
+    ) RETURN VARCHAR2 AS
 
-ex_INVALID_discount EXCEPTION;
-BEGIN
-
-if vdiscount > 1 then
-raise ex_INVALID_discount;
-end if;
-
-RETURN 'YES';
-
-EXCEPTION
-
-when ex_INVALID_discount then
-dbms_output.put_line('Please enter valid discount !!!');
-RETURN 'NO';
-
-
-RETURN 'NO';
+        ex_INVALID_discount EXCEPTION;
+    BEGIN
+    
+    if vdiscount > 1 then
+        raise ex_INVALID_discount;
+    end if;
+    
+    RETURN 'YES';
+    
+    EXCEPTION
+    
+    when ex_INVALID_discount then
+        dbms_output.put_line('Please enter valid discount !!!');
+    RETURN 'NO';
+    
+    
+    RETURN 'NO';
 
 END PROCESS_PAYMENT;
 
-
+PROCEDURE INSERT_PAYMENT
+    (
+    vPAYMENT_ID IN PAYMENT.payment_id%TYPE,
+    vCustomer_id IN PAYMENT.Customer_id%TYPE,
+    vcase_id IN PAYMENT.case_id%TYPE,
+        vdiscount IN PAYMENT.discount%TYPE
+    ) AS
+    
+    ex_INVALID EXCEPTION;
+    
+    BEGIN
+    
+    
+    if PROCESS_PAYMENT(vpayment_id,vCustomer_id,vcase_id,vdiscount) = 'NO' then
+    raise ex_INVALID;
+    end if;
+    
+    INSERT INTO SHRIYA_PROJECT.PAYMENT VALUES(vPAYMENT_ID,
+    vCustomer_id,vcase_id,vdiscount);
+    
+    IF SQL%ROWCOUNT != 1 then
+        dbms_output.put_line('Sorry, PAYMENT info could not be inserted. Please retry again with valid constraints !!!');
+    rollback;
+    ELSE
+    COMMIT;
+        dbms_output.put_line('payment Inserted Successfully !!!');
+    END IF;
+    
+    
+    EXCEPTION
+    when ex_INVALID then
+        dbms_output.put_line('payment info has not inserted. Please retry again with valid constraints !!!');
+    rollback;
+    
+    END insert_payment;
 
 end PCKG_PAYMENT;
 
 
-
+set serveroutput on;
+execute PCKG_PAYMENT.insert_payment(SEQ_PAYMENT_ID.nextval,'CUST50','CASE62',0.2)
 
 -------------
 -----PCKG_CASE_RESOLUTION
@@ -2110,144 +2149,93 @@ end PCKG_PAYMENT;
 
 CREATE OR REPLACE EDITIONABLE PACKAGE PCKG_CASE_RESOLUTION AS
 
-
-
-FUNCTION PROCESS_CASE_RESOLUTION(
-vCASE_ID IN CASE_RESOLUTION.CASE_ID%TYPE,
-vRESOLUTION_TYPE IN CASE_RESOLUTION.RESOLUTION_TYPE%TYPE,
-vRESOLUTION_DATE IN CASE_RESOLUTION.RESOLUTION_DATE%TYPE,
-vCOMMENTS IN CASE_RESOLUTION.COMMENTS%TYPE
-) RETURN VARCHAR2;
-
-
-
-PROCEDURE INSERT_CASE_RESOLUTION(
-vCASE_ID IN CASE_RESOLUTION.CASE_ID%TYPE,
-vRESOLUTION_TYPE IN CASE_RESOLUTION.RESOLUTION_TYPE%TYPE,
-vRESOLUTION_DATE IN CASE_RESOLUTION.RESOLUTION_DATE%TYPE,
-vCOMMENTS IN CASE_RESOLUTION.COMMENTS%TYPE
-);
-
-
+    FUNCTION PROCESS_CASE_RESOLUTION(
+        vCASE_ID IN CASE_RESOLUTION.CASE_ID%TYPE,
+        vRESOLUTION_TYPE IN CASE_RESOLUTION.RESOLUTION_TYPE%TYPE,
+        vRESOLUTION_DATE IN CASE_RESOLUTION.RESOLUTION_DATE%TYPE,
+        vCOMMENTS IN CASE_RESOLUTION.COMMENTS%TYPE
+    ) RETURN VARCHAR2;
+    
+    PROCEDURE INSERT_CASE_RESOLUTION(
+        vCASE_ID IN CASE_RESOLUTION.CASE_ID%TYPE,
+        vRESOLUTION_TYPE IN CASE_RESOLUTION.RESOLUTION_TYPE%TYPE,
+        vRESOLUTION_DATE IN CASE_RESOLUTION.RESOLUTION_DATE%TYPE,
+        vCOMMENTS IN CASE_RESOLUTION.COMMENTS%TYPE
+    );
 
 end PCKG_CASE_RESOLUTION;
 
 
-
-/*
-Logic of the package
-*/
-CREATE OR REPLACE EDITIONABLE PACKAGE BODY PCKG_CASE_RESOLUTION AS
-
-
-
-FUNCTION PROCESS_CASE_RESOLUTION(
-vCASE_ID IN CASE_RESOLUTION.CASE_ID%TYPE,
-vRESOLUTION_TYPE IN CASE_RESOLUTION.RESOLUTION_TYPE%TYPE,
-vRESOLUTION_DATE IN CASE_RESOLUTION.RESOLUTION_DATE%TYPE,
-vCOMMENTS IN CASE_RESOLUTION.COMMENTS%TYPE
-) RETURN VARCHAR2 AS
-
-
-
-
------- declaring variables for exception handling --------
-ex_INVALID_RESOLUTION_TYPE EXCEPTION;
-ex_INVALID_COMMENTS EXCEPTION;
-
-
-
-------- validations --------------
-BEGIN
-if LENGTH(trim(vRESOLUTION_TYPE)) >500 then
-raise ex_INVALID_RESOLUTION_TYPE;
-end if;
-
-
-
-if LENGTH(trim(vCOMMENTS)) >500 then
-raise ex_INVALID_COMMENTS;
-end if;
-
-
-
-RETURN 'YES';
-
-
-
-
-------------exception handling -------------------
-EXCEPTION
-when ex_INVALID_RESOLUTION_TYPE then
-dbms_output.put_line('Please enter resolution within 20 characters');
-RETURN 'NO';
-
-
-
-when ex_INVALID_COMMENTS then
-dbms_output.put_line('Please enter the resolution comments within 50 characters !!!');
-RETURN 'NO';
-
+CREATE OR REPLACE EDITIONABLE PACKAGE BODY PCKG_CASE_RESOLUTION AS   
+    FUNCTION PROCESS_CASE_RESOLUTION(
+        vCASE_ID IN CASE_RESOLUTION.CASE_ID%TYPE,
+        vRESOLUTION_TYPE IN CASE_RESOLUTION.RESOLUTION_TYPE%TYPE,
+        vRESOLUTION_DATE IN CASE_RESOLUTION.RESOLUTION_DATE%TYPE,
+        vCOMMENTS IN CASE_RESOLUTION.COMMENTS%TYPE
+    ) RETURN VARCHAR2 AS
+      
+    ------ declaring variables for exception handling --------
+    ex_INVALID_RESOLUTION_TYPE EXCEPTION;
+    ex_INVALID_COMMENTS EXCEPTION;
+      
+    ------- validations --------------
+    BEGIN
+        if LENGTH(trim(vRESOLUTION_TYPE)) >500 then
+            raise ex_INVALID_RESOLUTION_TYPE;
+        end if;
+     
+        if LENGTH(trim(vCOMMENTS)) >500 then
+            raise ex_INVALID_COMMENTS;
+        end if; 
+    
+    RETURN 'YES';
+    
+    ------------exception handling -------------------
+    EXCEPTION
+        when ex_INVALID_RESOLUTION_TYPE then
+        dbms_output.put_line('Please enter resolution within 20 characters');
+    RETURN 'NO';
+    
+    when ex_INVALID_COMMENTS then
+        dbms_output.put_line('Please enter the resolution comments within 50 characters !!!');
+    RETURN 'NO';
 
 
 RETURN 'NO';
-
-
 
 end PROCESS_CASE_RESOLUTION;
 
+    PROCEDURE INSERT_CASE_RESOLUTION
+    (
+        vCASE_ID IN CASE_RESOLUTION.CASE_ID%TYPE,
+        vRESOLUTION_TYPE IN CASE_RESOLUTION.RESOLUTION_TYPE%TYPE,
+        vRESOLUTION_DATE IN CASE_RESOLUTION.RESOLUTION_DATE%TYPE,
+        vCOMMENTS IN CASE_RESOLUTION.COMMENTS%TYPE
+    ) AS
+    ex_INVALID EXCEPTION;
+    
+    BEGIN
+    
+    
+    if PROCESS_CASE_RESOLUTION(vCASE_ID,vRESOLUTION_TYPE,vRESOLUTION_DATE,vCOMMENTS) = 'NO' then
+        raise ex_INVALID;
+    end if;
+    
+    INSERT INTO SHRIYA_PROJECT.case_resolution VALUES(vCASE_ID,vRESOLUTION_TYPE,vRESOLUTION_DATE,vCOMMENTS);
+    
+    IF SQL%ROWCOUNT != 1 then
+        dbms_output.put_line('Sorry, Resolution info could not be inserted. Please retry again with valid constraints !!!');
+        rollback;
+    ELSE
+        COMMIT;
+        dbms_output.put_line('Case Resolution Inserted Successfully !!!');
+    END IF;
+    
+    EXCEPTION
+    when ex_INVALID then
+        dbms_output.put_line('Resolution info has not inserted. Please retry again with valid constraints !!!');
+    rollback;
 
-
-
-/*
-Insert into package
-*/
-
-
-
-PROCEDURE INSERT_CASE_RESOLUTION
-(
-vCASE_ID IN CASE_RESOLUTION.CASE_ID%TYPE,
-vRESOLUTION_TYPE IN CASE_RESOLUTION.RESOLUTION_TYPE%TYPE,
-vRESOLUTION_DATE IN CASE_RESOLUTION.RESOLUTION_DATE%TYPE,
-vCOMMENTS IN CASE_RESOLUTION.COMMENTS%TYPE
-) AS
-ex_INVALID EXCEPTION;
-
-
-
-BEGIN
-
-
-
-
-if PROCESS_CASE_RESOLUTION(vCASE_ID,vRESOLUTION_TYPE,vRESOLUTION_DATE,vCOMMENTS) = 'NO' then
-raise ex_INVALID;
-end if;
-
-
-
-INSERT INTO SHRIYA_PROJECT.case_resolution VALUES(
-vCASE_ID,vRESOLUTION_TYPE,vRESOLUTION_DATE,vCOMMENTS);
-
-
-
-IF SQL%ROWCOUNT != 1 then
-dbms_output.put_line('Sorry, Resolution info could not be inserted. Please retry again with valid constraints !!!');
-rollback;
-ELSE
-COMMIT;
-dbms_output.put_line('Case Resolution Inserted Successfully !!!');
-END IF;
-
-
-EXCEPTION
-when ex_INVALID then
-dbms_output.put_line('Resolution info has not inserted. Please retry again with valid constraints !!!');
-rollback;
-
-
-END INSERT_CASE_RESOLUTION;
-
+    END INSERT_CASE_RESOLUTION;
 
 end PCKG_CASE_RESOLUTION;
