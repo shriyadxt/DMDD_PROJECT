@@ -1064,6 +1064,41 @@ left join case_details cd on cd.employee_id = e.employee_id
 left join payment p on p.case_id = cd.case_id
 inner join parts p on p.part_id = cd.part_id
 
+
+CREATE OR REPLACE VIEW "SHRIYA_PROJECT"."TRANSACTION_HISTORY_VW" ("SUB_ID", "SUB_TIER", "SUB_PERIOD", "PAYMENT_ID", "CUSTOMER_ID", "DEPT_SERVICE_COST", "DISCOUNT") DEFAULT COLLATION "USING_NLS_COMP"  AS 
+  SELECT
+    a.sub_id,
+    a.sub_tier,
+    a.sub_period,
+    p.payment_id,
+    c.customer_id,
+    d.dept_service_cost,
+    a.discount
+
+FROM
+    customer c
+    left join subscription a on c.sub_id = a.sub_id 
+    left join department d on c.customer_id = d.manager_id
+    left join payment p on p.customer_id = c.customer_id;
+    
+CREATE OR REPLACE VIEW "SHRIYA_PROJECT"."V_CUSOTMER_PROFILE" ("CUSTOMER_ID", "FULL_NAME", "EMAIL", "PHONE_NUMBER", "CUSTOMER_ONBOARDDATE", "ADDRESS_TYPE", "ADDRESS_1", "ADDRESS_2", "CITY", "STATE_CODE", "COUNTRY", "ZIP") DEFAULT COLLATION "USING_NLS_COMP"  AS 
+  SELECT
+    c.customer_ID,
+    c.first_name || ' ' || last_name full_name,
+    c.email,
+    c.phone_number,
+    c.customer_onboarddate,
+    a.address_type,
+    a.address_1,
+    a.address_2,
+    a.city,
+    a.state_code,
+    a.country,
+    a.zip
+FROM
+    customer c
+    left join customer_address a on c.customer_id = a.customer_id;
+
 drop table payment;
 
 CREATE TABLE shriya_project.PAYMENT(
@@ -1098,7 +1133,7 @@ where c.sub_id = s.sub_id and c.customer_id = cd.customer_id;
 -- DDL for package PCKG_CUSTOMER
 -----------------------------------------------
 
-CREATE OR REPLACE EDITIONABLE PACKAGE PCKG_CUSTOMER AS 
+CREATE OR REPLACE EDITIONABLE PACKAGE SHRIYA_PROJECT.PCKG_CUSTOMER AS 
 ex_INVALID EXCEPTION;
 FUNCTION PROCESS_CUSTOMER_ADDRESS(
         vADDRESS_1 IN CUSTOMER_ADDRESS.ADDRESS_1%TYPE,
@@ -1155,7 +1190,7 @@ END PCKG_CUSTOMER;
 -- DDL FOR PCKG_UTILS
 ---------------------------
 
-CREATE OR REPLACE EDITIONABLE PACKAGE PCKG_UTILS   AS 
+CREATE OR REPLACE EDITIONABLE PACKAGE SHRIYA_PROJECT.PCKG_UTILS   AS 
  FUNCTION CHECK_CUSTOMER_ID_EXISTS 
     (
     vCUST_ID IN CUSTOMER.CUSTOMER_ID%type 
@@ -1168,7 +1203,7 @@ CREATE OR REPLACE EDITIONABLE PACKAGE PCKG_UTILS   AS
     
 END PCKG_UTILS;
 
-CREATE OR REPLACE EDITIONABLE PACKAGE BODY PCKG_UTILS   AS
+CREATE OR REPLACE EDITIONABLE PACKAGE BODY SHRIYA_PROJECT.PCKG_UTILS   AS
  FUNCTION CHECK_CUSTOMER_ID_EXISTS 
     (
       vCUST_ID IN CUSTOMER.CUSTOMER_ID%type 
@@ -1211,7 +1246,7 @@ end PCKG_UTILS;
 -- DDL FOR PACKAGE FOR PCKG_CASE_DETAILS
 ---------------------------------
 
-CREATE OR REPLACE EDITIONABLE PACKAGE BODY PCKG_CUSTOMER   AS
+CREATE OR REPLACE EDITIONABLE PACKAGE BODY SHRIYA_PROJECT.PCKG_CUSTOMER   AS
 
 FUNCTION PROCESS_CUSTOMER_ADDRESS(
         vADDRESS_1 IN CUSTOMER_ADDRESS.ADDRESS_1%TYPE,
@@ -1510,15 +1545,15 @@ END PCKG_CUSTOMER;
 
 set serveroutput on;
 
-execute pckg_customer.INSERT_CUSTOMER('CUST69','supriya','S','shriya10dxt@gmail.com','(617) 498-6991','23-JAN-18 12.00.00.000000000 AM','SUB02');
+execute pckg_customer.INSERT_CUSTOMER('CUST61','Shriya','D','shriya10dxt@GAMIL.com','(617) 498-9091','23-JAN-18 12.00.00.000000000 AM','SUB02');
 
-execute pckg_customer.INSERT_CUSTOMER_ADDRESS('CUST69','80 newbury St','apt511','AZ','Tuscaloosa',75080,'USA','HOME');
+execute pckg_customer.INSERT_CUSTOMER_ADDRESS('CUST61','80 newbury St','apt511','AZ','Tuscaloosa',75080,'USA','HOME');
 
-execute pckg_customer.UPDATE_CUSTOMER_ADDRESS('CUST69','420 roxbury St','apt1','TX','Salem',77478,'USA','WORK');
+execute pckg_customer.UPDATE_CUSTOMER_ADDRESS('CUST61','420 roxbury St','apt1','TX','Salem',77478,'USA','WORK');
 
             
             
-CREATE OR REPLACE EDITIONABLE PACKAGE P_CASE_DETAILS   AS 
+CREATE OR REPLACE EDITIONABLE PACKAGE SHRIYA_PROJECT.P_CASE_DETAILS   AS 
 
     FUNCTION PROCESS_CASE_DETAILS(
         vCASE_ID IN CASE_DETAILS.CASE_ID%type,
@@ -1568,7 +1603,7 @@ CREATE OR REPLACE EDITIONABLE PACKAGE P_CASE_DETAILS   AS
 END P_CASE_DETAILS;
 
 
-CREATE OR REPLACE EDITIONABLE PACKAGE BODY P_CASE_DETAILS   AS
+CREATE OR REPLACE EDITIONABLE PACKAGE BODY SHRIYA_PROJECT.P_CASE_DETAILS   AS
  	FUNCTION PROCESS_CASE_DETAILS(
         vCASE_ID IN CASE_DETAILS.CASE_ID%type,
         vOPEN_DATE IN CASE_DETAILS.OPEN_DATE%type,
@@ -1608,6 +1643,7 @@ CREATE OR REPLACE EDITIONABLE PACKAGE BODY P_CASE_DETAILS   AS
         if vCUSTOMER_ID is NULL then
             raise ex_CUSTOMER;
         end if;
+        
         
         if pckg_utils.check_case_id_exists(vCASE_ID) is null then
             raise ex_NO_CASE_FOUND;
@@ -1894,15 +1930,15 @@ END P_CASE_DETAILS;
 -------------------------
 
 set serveroutput on;
-execute P_CASE_DETAILS.INSERT_CASE_DETAILS('CASE62','24-MAR-19 12.00.00.000000000 AM','28-MAR-19 12.00.00.000000000 AM','PART_6','G0X35AV','LAPTOP IS NOT CHARGING','CUST69','TX','BATTERY BLOAT','EMP20')
-execute P_CASE_DETAILS.UPDATE_CASE_DETAILS('CASE62','25-MAR-19 12.00.00.000000000 AM','28-MAR-19 12.00.00.000000000 AM','PART_5','G0X35AV','LAPTOP IS NOT CHARGING','CUST69','TX','BATTERY BLOAT','EMP20')
-execute P_CASE_DETAILS.DELETE_CASE_DETAILS('CASE62')
+execute P_CASE_DETAILS.INSERT_CASE_DETAILS('CASE61 ','24-MAR-19 12.00.00.000000000 AM','28-MAR-19 12.00.00.000000000 AM','PART_6','B8L63AA','LAPTOP IS NOT CHARGING','CUST61','TX','BATTERY BLOAT','EMP20')
+execute P_CASE_DETAILS.UPDATE_CASE_DETAILS('CASE61','25-MAR-19 12.00.00.000000000 AM','28-MAR-19 12.00.00.000000000 AM','PART_5','G0X35AV','LAPTOP IS NOT CHARGING','CUST69','TX','BATTERY BLOAT','EMP20')
+execute P_CASE_DETAILS.DELETE_CASE_DETAILS('CASE61')
 
 ------------------
 -- SEQUENCE FOR AUDIT TABLE
 ------------------
 
-create sequence AUDIT_ID_SEQ 
+create sequence SHRIYA_PROJECT.AUDIT_ID_SEQ 
     start with 1 
     increment by 1
     order;
@@ -1911,7 +1947,7 @@ create sequence AUDIT_ID_SEQ
 --DDL FOR AUDIT_DATA
 -------------------
 
-CREATE TABLE AUDIT_DATA   
+CREATE TABLE SHRIYA_PROJECT.AUDIT_DATA   
    (	  AUDIT_ID   NUMBER, 
 	  USERNAME   VARCHAR2(50)  , 
 	  AUDIT_DATE   TIMESTAMP (6) DEFAULT systimestamp, 
@@ -1922,7 +1958,7 @@ CREATE TABLE AUDIT_DATA
 ---------------------
 -- DDL FOR TRIGGER
 --------------------
-CREATE OR REPLACE EDITIONABLE TRIGGER CASE_DETAILS_TRIGG
+CREATE OR REPLACE EDITIONABLE TRIGGER SHRIYA_PROJECT.CASE_DETAILS_TRIGG
     AFTER INSERT OR UPDATE OR DELETE
     ON CASE_DETAILS
     FOR EACH ROW
@@ -1939,13 +1975,12 @@ END;
 
 ALTER TRIGGER CASE_DETAILS_TRIGG ENABLE;
 
-DELETE FROM CASE_RESOLUTION
 
 
 --------------
 --PCKG_EMPLOYEE
 ---------------
-CREATE OR REPLACE EDITIONABLE PACKAGE PCKG_EMPLOYEE_WORK  AS
+CREATE OR REPLACE EDITIONABLE PACKAGE SHRIYA_PROJECT.PCKG_EMPLOYEE_WORK  AS
 
  FUNCTION PROCESS_EMPLOYEE_WORK(
         vWORK_ID IN EMPLOYEE_WORK.WORK_ID%TYPE,
@@ -1968,7 +2003,7 @@ PROCEDURE INSERT_EMPLOYEE_WORK(
     end PCKG_EMPLOYEE_WORK;
     
     
-CREATE OR REPLACE EDITIONABLE PACKAGE BODY PCKG_EMPLOYEE_WORK   AS
+CREATE OR REPLACE EDITIONABLE PACKAGE BODY SHRIYA_PROJECT.PCKG_EMPLOYEE_WORK   AS
 
 FUNCTION PROCESS_EMPLOYEE_WORK 
 (
@@ -2030,27 +2065,30 @@ BEGIN
        vWORK_ID,vEMPLOYEE_ID,vWORK_TYPE,vSTART_DATE,vSTATUS,vCASE_ID);
         
     IF SQL%ROWCOUNT != 1 then
-        dbms_output.put_line('Sorry, Insurance could not be inserted. Please retry again with valid constraints !!!');
+        dbms_output.put_line('Sorry, employee work could not be inserted. Please retry again with valid constraints !!!');
         rollback;
     ELSE
         COMMIT;
-        dbms_output.put_line('Insurance Inserted Successfully !!!'); 
+        dbms_output.put_line('employee work Inserted Successfully !!!'); 
     END IF;
 
 EXCEPTION
     when ex_INVALID then
-        dbms_output.put_line('Insurance has not inserted. Please retry again with valid constraints  !!!'); 
+        dbms_output.put_line('EMPLOYEE work has not inserted. Please retry again with valid constraints  !!!'); 
     rollback;
         
 END INSERT_EMPLOYEE_WORK;
 end PCKG_EMPLOYEE_WORK;
 
+vWORK_ID,vEMPLOYEE_ID,vWORK_TYPE,vSTART_DATE,vSTATUS,vCASE_ID
 
+set serveroutput on;
+execute SHRIYA_PROJECT.PCKG_EMPLOYEE_WORK.INSERT_EMPLOYEE_WORK('WORK63','EMP20','REPLACED BATTERY','21-JUN-19 12.00.00.000000000 AM','RESOLVED','CASE61')
 
 -------------
 --PCKG PAYMENTS
 --------------
-CREATE OR REPLACE EDITIONABLE PACKAGE PCKG_PAYMENT AS
+CREATE OR REPLACE EDITIONABLE PACKAGE SHRIYA_PROJECT.PCKG_PAYMENT AS
 
 FUNCTION PROCESS_PAYMENT(
     vPAYMENT_ID IN PAYMENT.payment_id%TYPE,
@@ -2071,7 +2109,7 @@ end PCKG_PAYMENT;
 
 
 
-CREATE OR REPLACE EDITIONABLE PACKAGE BODY PCKG_PAYMENT AS
+CREATE OR REPLACE EDITIONABLE PACKAGE BODY SHRIYA_PROJECT.PCKG_PAYMENT AS
 
 FUNCTION PROCESS_PAYMENT
     (
@@ -2141,13 +2179,13 @@ end PCKG_PAYMENT;
 
 
 set serveroutput on;
-execute PCKG_PAYMENT.insert_payment(SEQ_PAYMENT_ID.nextval,'CUST50','CASE62',0.2)
+execute SHRIYA_PROJECT.PCKG_PAYMENT.insert_payment(SEQ_PAYMENT_ID.nextval,'CUST61','CASE61',0.2)
 
 -------------
 -----PCKG_CASE_RESOLUTION
 ----------------
 
-CREATE OR REPLACE EDITIONABLE PACKAGE PCKG_CASE_RESOLUTION AS
+CREATE OR REPLACE EDITIONABLE PACKAGE SHRIYA_PROJECT.PCKG_CASE_RESOLUTION AS
 
     FUNCTION PROCESS_CASE_RESOLUTION(
         vCASE_ID IN CASE_RESOLUTION.CASE_ID%TYPE,
@@ -2239,3 +2277,6 @@ end PROCESS_CASE_RESOLUTION;
     END INSERT_CASE_RESOLUTION;
 
 end PCKG_CASE_RESOLUTION;
+
+set serveroutput on;
+execute SHRIYA_PROJECT.PCKG_CASE_RESOLUTION.insert_CASE_RESOLUTION('CASE62','screen broken','20-JAN-19 12.00.00.000000000 AM','THE AGENT WENT AND REPLACED THE DISPLAY')
