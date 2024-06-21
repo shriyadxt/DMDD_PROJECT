@@ -1,11 +1,42 @@
-# Customer Complaints Management System
-# Problem Statement
-The purpose of this database is to maintain customer complaints and hold the issues about products, accounts, payments and other services for a particular warranty period. Through this customer retention can be achieved by resolving the case within the stipulated time and helping them track the status of their case.  
+# Customer Complaints Management Database
 
-Customer service is an important aspect of any Business. Customer loyalty can be lost as a result of poor customer service, which can lead to negative reviews and numerous customers advising their families and friends not to use the company. As a result, client happiness determines the company's growth or decline, and the company can only grow if we work towards retaining and extracting more value from them. 
+The Customer Complaints Management Database is a comprehensive solution built in Oracle Database to manage and address customer issues related to products, accounts, payments, and various services within a specific warranty period. The database is designed to enhance customer satisfaction by providing a streamlined process for recording, managing, and resolving complaints.
 
-# Objective
-Employees should be able to register all customer information into the case. Details of all hardware replacements should be stored in a database to predict resolution time and cost. Customer data provided by customer service is used to compute the cost, which is based on warranty information. Customer retention is likely if replacements/fixes are completed within the predicted time of resolution. 
+## Key Features
 
-- by Shriya Dikshith 
+- **ER Diagram and Normalized Schema**: The database is built on an Entity-Relationship (ER) diagram and a normalized schema comprising 12 entities. This design ensures efficient data storage, reduces redundancy, and improves data integrity.
+
+- **ACID Transactions**: The database uses ACID (Atomicity, Consistency, Isolation, Durability) transactions to ensure that all operations are completed successfully or rolled back if any part of the transaction fails. This guarantees data consistency and reliability.
+
+- **CRUD Operations**: The database supports CRUD (Create, Read, Update, Delete) operations to manage customer complaints. This allows users to create new complaints, retrieve complaint details, update complaint information, and delete complaints as necessary.
+
+- **Efficient Complaint Resolution**: By providing a structured approach to managing complaints, the database helps in resolving issues in a timely manner. This includes tracking the status of complaints, assigning them to relevant departments or individuals, and monitoring the progress until resolution.
+
+- **Integration with Warranty Information**: The database integrates with warranty information to determine the eligibility of complaints for service or replacement. This ensures that complaints within the warranty period are addressed promptly.
+
+- **Reporting and Analytics**: The database includes features for generating reports and performing analytics on complaint data. This helps in identifying trends, common issues, and areas for improvement in products or services.
+
+## Benefits
+
+- **Improved Customer Satisfaction**: The database enables quick and effective resolution of customer complaints, leading to higher levels of customer satisfaction and loyalty.
+
+- **Streamlined Complaint Management**: By centralizing complaint data and providing a structured approach to handling complaints, the database streamlines the complaint management process, reducing manual effort and errors.
+
+- **Data Integrity and Security**: The use of a normalized schema and ACID transactions ensures data integrity, while access controls and encryption mechanisms protect customer data from unauthorized access.
+
+- **Insightful Analytics**: The reporting and analytics features of the database provide valuable insights into customer complaints, helping organizations make informed decisions to improve products and services.
+
+## Usage
+
+To use the Customer Complaints Management Database, follow these steps:
+
+1. Install Oracle Database.
+2. Create the database schema using the provided SQL scripts.
+3. Populate the database with sample data.
+4. Connect your application to the database and start managing complaints.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 
