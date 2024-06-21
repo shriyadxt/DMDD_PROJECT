@@ -35,8 +35,6 @@ To use the Customer Complaints Management Database, follow these steps:
 3. Populate the database with sample data.
 4. Connect your application to the database and start managing complaints.
 
-## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 
